@@ -1,4 +1,12 @@
+<div align="center">
+  
 # Log Analyzer - Detecção de Força Bruta
+
+<img width="1847" height="1021" alt="Image" src="https://github.com/user-attachments/assets/73659985-9555-4fa3-a457-69d4501b9caf" />
+
+</div>
+
+---
 
 Projeto em Python que analisa arquivos de log de autenticação e identifica possíveis ataques de força bruta com base em tentativas de login falhas por IP.
 
