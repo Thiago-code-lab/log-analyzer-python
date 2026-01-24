@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log Analyzer - Detecção de Força Bruta</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @keyframes pulse-red {
@@ -26,6 +25,31 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse-badge {
+            /* Static badge - animation removed to prevent performance issues */
+            display: inline-block;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
     </style>
 </head>
@@ -104,74 +128,133 @@
 
         <!-- Results Section -->
         <section id="resultsSection" class="hidden">
-            <!-- Summary Cards -->
-            <div class="grid md:grid-cols-4 gap-4 mb-8">
-                <div class="bg-white rounded-lg shadow-md p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600">Linhas Totais</p>
-                            <p class="text-2xl font-bold text-gray-800" id="totalLines">0</p>
+            <!-- Enhanced Summary Cards -->
+            <div class="grid md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-blue-100 p-3 rounded-lg">
+                            <i class="fas fa-file-alt text-2xl text-blue-600"></i>
                         </div>
-                        <i class="fas fa-file-alt text-3xl text-blue-500"></i>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600 font-medium">Linhas Totais</p>
+                            <p class="text-3xl font-bold text-gray-800 counter" id="totalLines">0</p>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full progress-bar" id="totalLinesProgress" style="width: 0%"></div>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow-md p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600">Falhas de Login</p>
-                            <p class="text-2xl font-bold text-orange-600" id="failedLines">0</p>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover fade-in" style="animation-delay: 0.1s">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-orange-100 p-3 rounded-lg">
+                            <i class="fas fa-exclamation-triangle text-2xl text-orange-600"></i>
                         </div>
-                        <i class="fas fa-exclamation-triangle text-3xl text-orange-500"></i>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600 font-medium">Falhas de Login</p>
+                            <p class="text-3xl font-bold text-orange-600 counter" id="failedLines">0</p>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-orange-600 h-2 rounded-full progress-bar" id="failedLinesProgress" style="width: 0%"></div>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow-md p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600">IPs Únicos</p>
-                            <p class="text-2xl font-bold text-purple-600" id="uniqueIPs">0</p>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover fade-in" style="animation-delay: 0.2s">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-purple-100 p-3 rounded-lg">
+                            <i class="fas fa-network-wired text-2xl text-purple-600"></i>
                         </div>
-                        <i class="fas fa-network-wired text-3xl text-purple-500"></i>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600 font-medium">IPs Únicos</p>
+                            <p class="text-3xl font-bold text-purple-600 counter" id="uniqueIPs">0</p>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-purple-600 h-2 rounded-full progress-bar" id="uniqueIPsProgress" style="width: 0%"></div>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow-md p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-gray-600">IPs Suspeitos</p>
-                            <p class="text-2xl font-bold text-red-600" id="suspiciousCount">0</p>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover fade-in" style="animation-delay: 0.3s">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-red-100 p-3 rounded-lg pulse-badge">
+                            <i class="fas fa-shield-virus text-2xl text-red-600"></i>
                         </div>
-                        <i class="fas fa-shield-virus text-3xl text-red-500"></i>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600 font-medium">IPs Suspeitos</p>
+                            <p class="text-3xl font-bold text-red-600 counter" id="suspiciousCount">0</p>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 mt-1" id="riskBadge">
+                                <i class="fas fa-exclamation-circle mr-1"></i>Risco Baixo
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-red-600 h-2 rounded-full progress-bar" id="suspiciousProgress" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts and Tables -->
-            <div class="grid md:grid-cols-2 gap-8">
-                <!-- Chart -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-lg font-semibold mb-4">Distribuição de Tentativas</h3>
-                    <canvas id="attemptsChart"></canvas>
+            <!-- Enhanced Tables Section -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Suspicious IPs Table -->
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover fade-in" style="animation-delay: 0.7s">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                            IPs Suspeitos
+                        </h3>
+                        <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full pulse-badge" id="suspiciousCountBadge">
+                            0
+                        </span>
+                    </div>
+                    <div class="mb-4">
+                        <input type="text" id="suspiciousSearch" placeholder="Buscar IP..." 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                    <div id="suspiciousTable" class="overflow-x-auto max-h-64">
+                        <!-- Table will be populated by JavaScript -->
+                    </div>
                 </div>
 
-                <!-- Suspicious IPs Table -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-lg font-semibold mb-4 flex items-center">
-                        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
-                        IPs Suspeitos
-                    </h3>
-                    <div id="suspiciousTable" class="overflow-x-auto">
+                <!-- Normal IPs Table -->
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover fade-in" style="animation-delay: 0.8s">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            IPs Normais
+                        </h3>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full" id="normalCountBadge">
+                            0
+                        </span>
+                    </div>
+                    <div class="mb-4">
+                        <input type="text" id="normalSearch" placeholder="Buscar IP..." 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div id="normalTable" class="overflow-x-auto max-h-64">
                         <!-- Table will be populated by JavaScript -->
                     </div>
                 </div>
             </div>
 
-            <!-- Normal IPs Table -->
-            <div class="bg-white rounded-lg shadow-md p-6 mt-8">
-                <h3 class="text-lg font-semibold mb-4 flex items-center">
-                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                    IPs Normais
-                </h3>
-                <div id="normalTable" class="overflow-x-auto">
-                    <!-- Table will be populated by JavaScript -->
+            <!-- Export Options -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mt-6 card-hover fade-in" style="animation-delay: 0.9s">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">Exportar Relatório</h3>
+                        <p class="text-sm text-gray-600 mt-1">Baixe os dados da análise em diferentes formatos</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="exportData('csv')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                            <i class="fas fa-file-csv mr-2"></i>CSV
+                        </button>
+                        <button onclick="exportData('json')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                            <i class="fas fa-file-code mr-2"></i>JSON
+                        </button>
+                        <button onclick="printReport()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center">
+                            <i class="fas fa-print mr-2"></i>Imprimir
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -185,7 +268,7 @@
     </footer>
 
     <script>
-        let currentChart = null;
+        let analysisData = null;
 
         // Update current time
         function updateTime() {
@@ -213,6 +296,15 @@
                 `Arquivo selecionado: ${fileName}` : '';
         });
 
+        // Search functionality
+        document.getElementById('suspiciousSearch').addEventListener('input', function(e) {
+            filterTable('suspiciousTable', e.target.value);
+        });
+
+        document.getElementById('normalSearch').addEventListener('input', function(e) {
+            filterTable('normalTable', e.target.value);
+        });
+
         // Show loading state
         function showLoading() {
             document.getElementById('loadingState').classList.remove('hidden');
@@ -224,6 +316,20 @@
         function hideLoading() {
             document.getElementById('loadingState').classList.add('hidden');
             document.getElementById('analyzeBtn').disabled = false;
+        }
+
+        // Filter table data
+        function filterTable(tableId, searchTerm) {
+            const table = document.getElementById(tableId);
+            const rows = table.getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const ipCell = row.getElementsByTagName('td')[0];
+                if (ipCell) {
+                    const ip = ipCell.textContent.toLowerCase();
+                    row.style.display = ip.includes(searchTerm.toLowerCase()) ? '' : 'none';
+                }
+            }
         }
 
         // Analyze uploaded file
@@ -280,32 +386,78 @@
             }
         }
 
-        // Display results
+        // Display results (simplified version)
         function displayResults(data) {
             if (data.error) {
                 alert('Erro na análise: ' + data.error);
                 return;
             }
 
-            // Update summary cards
-            document.getElementById('totalLines').textContent = data.total_lines.toLocaleString('pt-BR');
-            document.getElementById('failedLines').textContent = data.failed_lines.toLocaleString('pt-BR');
-            document.getElementById('uniqueIPs').textContent = data.total_unique_ips.toLocaleString('pt-BR');
-            document.getElementById('suspiciousCount').textContent = Object.keys(data.suspicious_ips).length.toLocaleString('pt-BR');
+            analysisData = data;
 
-            // Create chart
-            createChart(data);
+            // Animate counters
+            animateCounter('totalLines', data.total_lines);
+            animateCounter('failedLines', data.failed_lines);
+            animateCounter('uniqueIPs', data.total_unique_ips);
+            animateCounter('suspiciousCount', Object.keys(data.suspicious_ips).length);
+
+            // Update progress bars
+            updateProgressBars(data);
+
+            // Update risk badge
+            updateRiskBadge(Object.keys(data.suspicious_ips).length, data.total_unique_ips);
 
             // Populate tables
             populateTable('suspiciousTable', data.suspicious_ips, true);
             populateTable('normalTable', data.normal_ips, false);
 
+            // Update badges
+            document.getElementById('suspiciousCountBadge').textContent = Object.keys(data.suspicious_ips).length;
+            document.getElementById('normalCountBadge').textContent = Object.keys(data.normal_ips).length;
+
             // Show results section
             document.getElementById('resultsSection').classList.remove('hidden');
         }
 
-        // Create chart
-        function createChart(data) {
+        // Animate counter numbers (simple version)
+        function animateCounter(elementId, targetValue) {
+            // Set value immediately without animation
+            document.getElementById(elementId).textContent = targetValue.toLocaleString('pt-BR');
+        }
+
+        // Update progress bars (simple version)
+        function updateProgressBars(data) {
+            const maxValue = Math.max(data.total_lines, data.failed_lines, data.total_unique_ips);
+            
+            // Set progress bars immediately without animation
+            document.getElementById('totalLinesProgress').style.width = (data.total_lines / maxValue) * 100 + '%';
+            document.getElementById('failedLinesProgress').style.width = (data.failed_lines / maxValue) * 100 + '%';
+            document.getElementById('uniqueIPsProgress').style.width = (data.total_unique_ips / maxValue) * 100 + '%';
+            
+            const suspiciousPercentage = data.total_unique_ips > 0 ? 
+                (Object.keys(data.suspicious_ips).length / data.total_unique_ips) * 100 : 0;
+            document.getElementById('suspiciousProgress').style.width = suspiciousPercentage + '%';
+        }
+
+        // Update risk badge
+        function updateRiskBadge(suspiciousCount, totalCount) {
+            const percentage = totalCount > 0 ? (suspiciousCount / totalCount) * 100 : 0;
+            const badge = document.getElementById('riskBadge');
+            
+            if (percentage > 50) {
+                badge.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Risco Alto';
+                badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 mt-1';
+            } else if (percentage > 20) {
+                badge.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i>Risco Médio';
+                badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mt-1';
+            } else {
+                badge.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Risco Baixo';
+                badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1';
+            }
+        }
+
+        // Create static bar chart
+        function createBarChart(data) {
             const ctx = document.getElementById('attemptsChart').getContext('2d');
             
             // Combine all IPs for chart
@@ -331,18 +483,36 @@
                         borderColor: sortedIPs.map(([ip]) => 
                             data.suspicious_ips[ip] ? 'rgb(239, 68, 68)' : 'rgb(59, 130, 246)'
                         ),
-                        borderWidth: 1
+                        borderWidth: 2,
+                        borderRadius: 8
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 0 // Disable animations
+                    },
                     plugins: {
                         legend: {
                             display: false
                         },
                         title: {
                             display: true,
-                            text: `Top 10 IPs (Threshold: ${data.threshold})`
+                            text: `Top 10 IPs (Threshold: ${data.threshold})`,
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const ip = context.label;
+                                    const isSuspicious = data.suspicious_ips[ip];
+                                    return `Tentativas: ${context.parsed.y} ${isSuspicious ? '(Suspeito)' : '(Normal)'}`;
+                                }
+                            }
                         }
                     },
                     scales: {
@@ -351,12 +521,19 @@
                             title: {
                                 display: true,
                                 text: 'Número de Tentativas'
+                            },
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.05)'
                             }
                         },
                         x: {
                             title: {
                                 display: true,
                                 text: 'Endereço IP'
+                            },
+                            grid: {
+                                display: false
                             }
                         }
                     }
@@ -364,12 +541,100 @@
             });
         }
 
-        // Populate table
+        // Create static pie chart
+        function createPieChart(data) {
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            
+            const suspiciousCount = Object.keys(data.suspicious_ips).length;
+            const normalCount = Object.keys(data.normal_ips).length;
+
+            if (distributionChart) {
+                distributionChart.destroy();
+            }
+
+            distributionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['IPs Suspeitos', 'IPs Normais'],
+                    datasets: [{
+                        data: [suspiciousCount, normalCount],
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(59, 130, 246, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(239, 68, 68)',
+                            'rgb(59, 130, 246)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 0 // Disable animations
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update static risk gauge
+        function updateRiskGauge(data) {
+            const suspiciousCount = Object.keys(data.suspicious_ips).length;
+            const totalCount = data.total_unique_ips;
+            const percentage = totalCount > 0 ? (suspiciousCount / totalCount) * 100 : 0;
+            
+            // Update gauge immediately without animation
+            const gauge = document.getElementById('riskGauge');
+            const circumference = 2 * Math.PI * 65;
+            const offset = circumference - (percentage / 100) * circumference;
+            
+            gauge.style.strokeDashoffset = offset;
+            
+            // Change color based on risk
+            if (percentage > 50) {
+                gauge.style.stroke = '#ef4444';
+            } else if (percentage > 20) {
+                gauge.style.stroke = '#f59e0b';
+            } else {
+                gauge.style.stroke = '#10b981';
+            }
+            
+            // Update text
+            document.getElementById('riskPercentage').textContent = Math.round(percentage) + '%';
+            
+            const riskLevel = percentage > 50 ? 'Alto' : percentage > 20 ? 'Médio' : 'Baixo';
+            document.getElementById('riskLevel').textContent = riskLevel;
+        }
+
+        // Enhanced table population (simple version)
         function populateTable(tableId, data, isSuspicious) {
             const table = document.getElementById(tableId);
             
             if (Object.keys(data).length === 0) {
-                table.innerHTML = `<p class="text-gray-500 text-center py-4">
+                table.innerHTML = `<p class="text-gray-500 text-center py-8">
+                    <i class="fas fa-inbox text-4xl mb-2"></i><br>
                     ${isSuspicious ? 'Nenhum IP suspeito encontrado.' : 'Nenhum IP normal encontrado.'}
                 </p>`;
                 return;
@@ -378,15 +643,17 @@
             const sortedData = Object.entries(data).sort((a, b) => b[1] - a[1]);
             
             let html = `
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-2 text-left">IP</th>
-                            <th class="px-4 py-2 text-center">Tentativas</th>
-                            <th class="px-4 py-2 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold text-gray-700">IP</th>
+                                <th class="px-4 py-3 text-center font-semibold text-gray-700">Tentativas</th>
+                                <th class="px-4 py-3 text-center font-semibold text-gray-700">Status</th>
+                                <th class="px-4 py-3 text-center font-semibold text-gray-700">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
             `;
 
             sortedData.forEach(([ip, count]) => {
@@ -396,20 +663,133 @@
                     '<i class="fas fa-check-circle text-green-500"></i>';
                 const statusText = isSuspicious ? 'Suspeito' : 'Normal';
                 const statusClass = isSuspicious ? 'text-red-600 font-semibold' : 'text-green-600';
+                const riskLevel = count > 10 ? 'Alto' : count > 5 ? 'Médio' : 'Baixo';
+                const riskClass = count > 10 ? 'bg-red-100 text-red-800' : count > 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800';
 
                 html += `
-                    <tr class="${rowClass} hover:bg-gray-50">
-                        <td class="px-4 py-2 font-mono">${ip}</td>
-                        <td class="px-4 py-2 text-center">${count}</td>
-                        <td class="px-4 py-2 text-center ${statusClass}">
-                            ${statusIcon} ${statusText}
+                    <tr class="${rowClass} hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3 font-mono text-sm">
+                            <div class="flex items-center">
+                                <i class="fas fa-network-wired text-gray-400 mr-2"></i>
+                                ${ip}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex items-center justify-center">
+                                <span class="font-semibold">${count}</span>
+                                <span class="ml-2 text-xs px-2 py-1 rounded-full ${riskClass}">${riskLevel}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-center ${statusClass}">
+                            <div class="flex items-center justify-center">
+                                ${statusIcon}
+                                <span class="ml-1">${statusText}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="copyIP('${ip}')" class="text-blue-600 hover:text-blue-800 mr-2" title="Copiar IP">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button onclick="blockIP('${ip}')" class="text-red-600 hover:text-red-800" title="Bloquear IP">
+                                <i class="fas fa-ban"></i>
+                            </button>
                         </td>
                     </tr>
                 `;
             });
 
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
             table.innerHTML = html;
+        }
+
+        // Copy IP to clipboard
+        function copyIP(ip) {
+            navigator.clipboard.writeText(ip).then(() => {
+                showNotification('IP copiado: ' + ip, 'success');
+            }).catch(() => {
+                showNotification('Erro ao copiar IP', 'error');
+            });
+        }
+
+        // Block IP (simulated)
+        function blockIP(ip) {
+            if (confirm('Deseja bloquear o IP ' + ip + '?')) {
+                showNotification('IP ' + ip + ' bloqueado com sucesso!', 'warning');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-yellow-500';
+            
+            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 fade-in`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'exclamation-triangle'} mr-2"></i>
+                    ${message}
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Export data functions
+        function exportData(format) {
+            if (!analysisData) {
+                showNotification('Nenhum dado para exportar', 'error');
+                return;
+            }
+
+            if (format === 'csv') {
+                exportCSV();
+            } else if (format === 'json') {
+                exportJSON();
+            }
+        }
+
+        function exportCSV() {
+            let csv = 'IP,Tentativas,Status\n';
+            
+            // Add suspicious IPs
+            for (const [ip, count] of Object.entries(analysisData.suspicious_ips)) {
+                csv += `${ip},${count},Suspeito\n`;
+            }
+            
+            // Add normal IPs
+            for (const [ip, count] of Object.entries(analysisData.normal_ips)) {
+                csv += `${ip},${count},Normal\n`;
+            }
+            
+            downloadFile(csv, 'log_analysis.csv', 'text/csv');
+            showNotification('Arquivo CSV exportado com sucesso!', 'success');
+        }
+
+        function exportJSON() {
+            const jsonData = JSON.stringify(analysisData, null, 2);
+            downloadFile(jsonData, 'log_analysis.json', 'application/json');
+            showNotification('Arquivo JSON exportado com sucesso!', 'success');
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
+            showNotification('Preparando impressão...', 'success');
         }
     </script>
 </body>
